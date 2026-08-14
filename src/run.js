@@ -1,7 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 const { scrape } = require('./scrape');
-const { publishPhotoPost } = require('./facebook');
+const { publishMultiPhotoPost } = require('./facebook');
 
 async function main() {
   const key = process.argv[2];
@@ -12,10 +12,11 @@ async function main() {
 
   const outDir = path.join(__dirname, '..', 'output');
   const results = await scrape([key], outDir);
-  const { reportText, chartPath } = results[key];
+  const { reportText, greenpink, heikin, heatmap, technical } = results[key];
+  const imagePaths = [greenpink, heikin, heatmap, technical];
 
   console.log(`--- Đã lấy dữ liệu cho ${key} ---`);
-  console.log(`Ảnh biểu đồ: ${chartPath}`);
+  console.log('Ảnh:', imagePaths);
   console.log(`Độ dài báo cáo: ${reportText.length} ký tự`);
 
   const dryRun = process.env.DRY_RUN === '1' || !process.env.FB_PAGE_ID || !process.env.FB_PAGE_ACCESS_TOKEN;
@@ -26,10 +27,10 @@ async function main() {
     return;
   }
 
-  const post = await publishPhotoPost({
+  const post = await publishMultiPhotoPost({
     pageId: process.env.FB_PAGE_ID,
     accessToken: process.env.FB_PAGE_ACCESS_TOKEN,
-    imagePath: chartPath,
+    imagePaths,
     message: reportText,
   });
   console.log('Đăng bài thành công:', post);
