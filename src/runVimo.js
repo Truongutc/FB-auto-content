@@ -2,6 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const { scrapeVimo } = require('./scrapeVimo');
 const { publishMultiPhotoPost } = require('./facebook');
+const { withFooter } = require('./footer');
 
 async function main() {
   const outDir = path.join(__dirname, '..', 'output');
@@ -29,7 +30,7 @@ async function main() {
     outputs.credit,
   ];
 
-  const message = outputs.reportText;
+  const message = withFooter(outputs.reportText);
 
   const dryRun = process.env.DRY_RUN === '1' || !process.env.FB_PAGE_ID || !process.env.FB_PAGE_ACCESS_TOKEN;
   if (dryRun) {

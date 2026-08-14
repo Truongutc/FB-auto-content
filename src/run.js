@@ -2,6 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const { scrape } = require('./scrape');
 const { publishMultiPhotoPost } = require('./facebook');
+const { withFooter } = require('./footer');
 
 async function main() {
   const key = process.argv[2];
@@ -14,6 +15,7 @@ async function main() {
   const results = await scrape([key], outDir);
   const { reportText, greenpink, heikin, heatmap, technical } = results[key];
   const imagePaths = [greenpink, heikin, heatmap, technical];
+  const message = withFooter(reportText);
 
   console.log(`--- Đã lấy dữ liệu cho ${key} ---`);
   console.log('Ảnh:', imagePaths);
@@ -23,7 +25,7 @@ async function main() {
   if (dryRun) {
     console.log('\n[DRY RUN] Chưa đăng lên Facebook (thiếu FB_PAGE_ID / FB_PAGE_ACCESS_TOKEN, hoặc DRY_RUN=1).');
     console.log('Nội dung caption sẽ đăng:\n');
-    console.log(reportText);
+    console.log(message);
     return;
   }
 
@@ -31,7 +33,7 @@ async function main() {
     pageId: process.env.FB_PAGE_ID,
     accessToken: process.env.FB_PAGE_ACCESS_TOKEN,
     imagePaths,
-    message: reportText,
+    message,
   });
   console.log('Đăng bài thành công:', post);
 }

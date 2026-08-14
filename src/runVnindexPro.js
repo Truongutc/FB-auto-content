@@ -2,12 +2,14 @@ require('dotenv').config();
 const path = require('path');
 const { scrapeVnindexPro } = require('./scrapeVnindexPro');
 const { publishMultiPhotoPost } = require('./facebook');
+const { withFooter } = require('./footer');
 
 async function main() {
   const outDir = path.join(__dirname, '..', 'output');
   const result = await scrapeVnindexPro(outDir);
 
   const imagePaths = [result.breadth, result.greenpink, result.heikin_ashi, result.heatmap, result.technical];
+  const message = withFooter(result.reportText);
 
   console.log('--- Đã lấy dữ liệu VNINDEX (aic-proweb) ---');
   console.log('Ảnh:', imagePaths);
@@ -17,7 +19,7 @@ async function main() {
   if (dryRun) {
     console.log('\n[DRY RUN] Chưa đăng lên Facebook (thiếu FB_PAGE_ID / FB_PAGE_ACCESS_TOKEN, hoặc DRY_RUN=1).');
     console.log('Nội dung caption sẽ đăng:\n');
-    console.log(result.reportText);
+    console.log(message);
     return;
   }
 
@@ -25,7 +27,7 @@ async function main() {
     pageId: process.env.FB_PAGE_ID,
     accessToken: process.env.FB_PAGE_ACCESS_TOKEN,
     imagePaths,
-    message: result.reportText,
+    message,
   });
   console.log('Đăng bài thành công:', post);
 }
