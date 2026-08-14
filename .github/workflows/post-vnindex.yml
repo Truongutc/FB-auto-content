@@ -1,0 +1,26 @@
+name: Post VNINDEX to Facebook
+
+on:
+  schedule:
+    # 17:00 (Asia/Ho_Chi_Minh, UTC+7) Mon-Fri = 10:00 UTC Mon-Fri
+    - cron: '0 10 * * 1-5'
+  workflow_dispatch: {}
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: node src/run.js vnindex
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
