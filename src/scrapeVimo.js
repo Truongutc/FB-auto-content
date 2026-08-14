@@ -141,6 +141,21 @@ async function capturePeAndPb(page, outDir) {
   );
 }
 
+// Copies the full text of the "🧭 Tổng hợp Phân tích Đa Chỉ số — Bức tranh
+// Tổng thể" card verbatim, to use as the Facebook post's caption.
+async function extractReportText(page) {
+  const headingHandle = await findLeafByText(page, 'Tổng hợp Phân tích Đa Chỉ số');
+  if (!(await headingHandle.evaluate((el) => !!el))) {
+    throw new Error('Không tìm thấy mục "Tổng hợp Phân tích Đa Chỉ số"');
+  }
+  const cardHandle = await headingHandle.evaluateHandle((el) => el.closest('.card'));
+  if (!(await cardHandle.evaluate((el) => !!el))) {
+    throw new Error('Không tìm thấy card của mục "Tổng hợp Phân tích Đa Chỉ số"');
+  }
+  const text = await cardHandle.evaluate((el) => el.innerText);
+  return text.trim();
+}
+
 async function scrapeVimo(outDir) {
   fs.mkdirSync(outDir, { recursive: true });
   const browser = await chromium.launch();
@@ -193,6 +208,8 @@ async function scrapeVimo(outDir) {
       },
       (outputs.credit = path.join(outDir, 'vimo_credit.png'))
     );
+
+    outputs.reportText = await extractReportText(page);
 
     await page.close();
     return outputs;
