@@ -8,7 +8,8 @@
     "post:vnindex": "node src/runVnindexPro.js",
     "post:vnindex-nonvin": "node src/run.js vnindex_nonvin",
     "post:toprs": "node src/runTopRS.js",
-    "post:vimo": "node src/runVimo.js"
+    "post:vimo": "node src/runVimo.js",
+    "post:chiemtinh": "node src/runChiemTinh.js"
   },
   "keywords": [],
   "author": "",
