@@ -34,7 +34,21 @@ async function main() {
     imagePaths: [stockPath, sectorPath],
     message,
   });
-  console.log('Đăng bài thành công:', post);
+  console.log('Đăng bài lên Fanpage thành công:', post);
+
+  if (process.env.FB_GROUP_ID) {
+    try {
+      const groupPost = await publishMultiPhotoPost({
+        pageId: process.env.FB_GROUP_ID,
+        accessToken: process.env.FB_GROUP_ACCESS_TOKEN,
+        imagePaths: [stockPath, sectorPath],
+        message,
+      });
+      console.log('Đăng bài lên Group thành công:', groupPost);
+    } catch (err) {
+      console.error('Đăng bài lên Group thất bại (bỏ qua, bài Fanpage vẫn đã đăng):', err.message);
+    }
+  }
 }
 
 main().catch((err) => {
