@@ -1,7 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 const { scrapeVnindexPro } = require('./scrapeVnindexPro');
-const { publishEverywhere } = require('./publishEverywhere');
+const { publishMultiPhotoPost } = require('./facebook');
 const { withFooter } = require('./footer');
 
 async function main() {
@@ -23,7 +23,13 @@ async function main() {
     return;
   }
 
-  await publishEverywhere({ imagePaths, message });
+  const post = await publishMultiPhotoPost({
+    pageId: process.env.FB_PAGE_ID,
+    accessToken: process.env.FB_PAGE_ACCESS_TOKEN,
+    imagePaths,
+    message,
+  });
+  console.log('Đăng bài thành công:', post);
 }
 
 main().catch((err) => {
