@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "post:vnindex": "node src/run.js vnindex",
-    "post:vnindex-nonvin": "node src/run.js vnindex_nonvin"
+    "post:vnindex-nonvin": "node src/run.js vnindex_nonvin",
+    "post:toprs": "node src/runTopRS.js"
   },
   "keywords": [],
   "author": "",
