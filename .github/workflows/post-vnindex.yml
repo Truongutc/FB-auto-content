@@ -20,7 +20,7 @@ jobs:
 
       - run: npx playwright install --with-deps chromium
 
-      - run: node src/run.js vnindex
+      - run: node src/runVnindexPro.js
         env:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
