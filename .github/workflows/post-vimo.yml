@@ -24,3 +24,5 @@ jobs:
         env:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          FB_GROUP_ID: ${{ secrets.FB_GROUP_ID }}
+          FB_GROUP_ACCESS_TOKEN: ${{ secrets.FB_GROUP_ACCESS_TOKEN }}
