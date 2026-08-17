@@ -161,7 +161,8 @@ async function extractReportText(page) {
   if (idx === -1) {
     throw new Error(`Không tìm thấy mốc "${marker}" trong nội dung báo cáo`);
   }
-  return fullText.slice(idx).trim();
+  const body = fullText.slice(idx).trim();
+  return `🧭 Định giá Vnindex NO VIN (loại bỏ nhóm Vingroup)\n\n${body}`;
 }
 
 async function scrapeVimo(outDir) {

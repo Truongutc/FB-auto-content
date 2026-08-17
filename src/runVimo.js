@@ -4,6 +4,10 @@ const { scrapeVimo } = require('./scrapeVimo');
 const { publishMultiPhotoPost } = require('./facebook');
 const { withFooter } = require('./footer');
 
+function todayVN() {
+  return new Date().toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+}
+
 async function main() {
   const outDir = path.join(__dirname, '..', 'output');
   const outputs = await scrapeVimo(outDir);
@@ -30,7 +34,8 @@ async function main() {
     outputs.credit,
   ];
 
-  const message = withFooter(outputs.reportText);
+  const title = `CẬP NHẬT VĨ MÔ ngày ${todayVN()} (Bài viết tổng hợp bằng AI)`;
+  const message = withFooter(`${title}\n\n${outputs.reportText}`);
 
   const dryRun = process.env.DRY_RUN === '1' || !process.env.FB_PAGE_ID || !process.env.FB_PAGE_ACCESS_TOKEN;
   if (dryRun) {
