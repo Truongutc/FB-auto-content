@@ -141,8 +141,10 @@ async function capturePeAndPb(page, outDir) {
   );
 }
 
-// Copies the full text of the "🧭 Tổng hợp Phân tích Đa Chỉ số — Bức tranh
-// Tổng thể" card verbatim, to use as the Facebook post's caption.
+// Copies the text of the "🧭 Tổng hợp Phân tích Đa Chỉ số — Bức tranh Tổng
+// thể" card, skipping the opening summary + the giant "Các điểm sáng cụ
+// thể... Ngược lại, một số điểm nghẽn..." indicator dump (too long/noisy for
+// a post) and starting at "Về định giá, VN-Index đang giao dịch..." instead.
 async function extractReportText(page) {
   const headingHandle = await findLeafByText(page, 'Tổng hợp Phân tích Đa Chỉ số');
   if (!(await headingHandle.evaluate((el) => !!el))) {
@@ -152,8 +154,14 @@ async function extractReportText(page) {
   if (!(await cardHandle.evaluate((el) => !!el))) {
     throw new Error('Không tìm thấy card của mục "Tổng hợp Phân tích Đa Chỉ số"');
   }
-  const text = await cardHandle.evaluate((el) => el.innerText);
-  return text.trim();
+  const fullText = (await cardHandle.evaluate((el) => el.innerText)).trim();
+
+  const marker = 'Về định giá, VN-Index đang giao dịch';
+  const idx = fullText.indexOf(marker);
+  if (idx === -1) {
+    throw new Error(`Không tìm thấy mốc "${marker}" trong nội dung báo cáo`);
+  }
+  return fullText.slice(idx).trim();
 }
 
 async function scrapeVimo(outDir) {
