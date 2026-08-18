@@ -1,0 +1,24 @@
+name: Post News Digest to Facebook
+
+on:
+  schedule:
+    # 07:10 (Asia/Ho_Chi_Minh, UTC+7) Mon-Fri = 00:10 UTC Mon-Fri
+    - cron: '10 0 * * 1-5'
+  workflow_dispatch: {}
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm ci
+
+      - run: node src/runNews.js
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}

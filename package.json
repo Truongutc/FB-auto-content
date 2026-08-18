@@ -9,15 +9,18 @@
     "post:vnindex-nonvin": "node src/run.js vnindex_nonvin",
     "post:toprs": "node src/runTopRS.js",
     "post:vimo": "node src/runVimo.js",
-    "post:chiemtinh": "node src/runChiemTinh.js"
+    "post:chiemtinh": "node src/runChiemTinh.js",
+    "post:news": "node src/runNews.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "cheerio": "^1.0.0",
     "dotenv": "^17.4.2",
     "playwright": "^1.62.1",
+    "rss-parser": "^3.13.0",
     "sharp": "^0.35.3"
   }
 }

@@ -67,4 +67,21 @@ async function publishMultiPhotoPost({ pageId, accessToken, imagePaths, message 
   return data; // { id: post_id }
 }
 
-module.exports = { publishPhotoPost, publishMultiPhotoPost };
+async function publishTextPost({ pageId, accessToken, message }) {
+  const form = new FormData();
+  form.append('message', message);
+  form.append('access_token', accessToken);
+
+  const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${pageId}/feed`, {
+    method: 'POST',
+    body: form,
+  });
+
+  const data = await res.json();
+  if (!res.ok || data.error) {
+    throw new Error(`Facebook API lỗi (text post): ${JSON.stringify(data.error || data)}`);
+  }
+  return data; // { id: post_id }
+}
+
+module.exports = { publishPhotoPost, publishMultiPhotoPost, publishTextPost };
