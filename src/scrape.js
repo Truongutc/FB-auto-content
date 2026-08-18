@@ -13,6 +13,36 @@ const TARGETS = {
   vnindex_nonvin: { label: 'VNINDEX (không VIN)', name: 'VNINDEX (không VIN)' },
 };
 
+// Friendly title used in the post caption in place of the scraped report's own
+// "💎 AIC code = AI + cơm! 💎 BÁO CÁO..." header, which reads as clutter on Facebook.
+const REPORT_TITLE = {
+  vnindex: 'Vnindex toàn thị trường',
+  vnindex_nonvin: 'Vnindex loại bỏ nhóm VINGROUP',
+};
+
+// The scraped report box's own text starts with a boxed "======" header
+// (branding + title + date/price) before the real analysis content. Strip
+// that box out and rebuild a plain, readable title from the date it carried.
+function sanitizeReportText(raw, key) {
+  const dateMatch = raw.match(/Ngày:\s*([\d-]+)/);
+  const date = dateMatch ? dateMatch[1] : '';
+
+  const body = raw
+    .split('\n')
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (/^[=-]+$/.test(trimmed)) return false;
+      if (trimmed.startsWith('💎')) return false;
+      if (/^Ngày:\s*[\d-]+/.test(trimmed)) return false;
+      return true;
+    })
+    .join('\n')
+    .trim();
+
+  const title = `BÁO CÁO PHÂN TÍCH TỔNG HỢP: ${REPORT_TITLE[key] || key}${date ? ` — Dữ liệu ngày: ${date}` : ''}`;
+  return `${title}\n\n${body}`;
+}
+
 function findLeafByText(page, text, { exact = false } = {}) {
   return page.evaluateHandle(
     ({ text, exact }) => {
@@ -153,13 +183,14 @@ async function scrapeOne(browser, key, outDir) {
   const page = await browser.newPage({ viewport: { width: 1400, height: 1400 } });
   await openCard(page, target.label);
 
-  const reportText = await expandReportBox(page);
-  if (!reportText) throw new Error(`Không lấy được nội dung báo cáo AI cho ${key}`);
+  const rawReportText = await expandReportBox(page);
+  if (!rawReportText) throw new Error(`Không lấy được nội dung báo cáo AI cho ${key}`);
+  const reportText = sanitizeReportText(rawReportText.trim(), key);
 
   const chartBlocks = await screenshotChartBlocks(page, outDir, key);
 
   await page.close();
-  return { key, reportText: reportText.trim(), ...chartBlocks };
+  return { key, reportText, ...chartBlocks };
 }
 
 async function scrape(keys, outDir) {
