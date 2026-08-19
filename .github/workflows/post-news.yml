@@ -2,8 +2,8 @@ name: Post News Digest to Facebook
 
 on:
   schedule:
-    # 07:30 (Asia/Ho_Chi_Minh, UTC+7) Mon-Fri = 00:30 UTC Mon-Fri
-    - cron: '30 0 * * 1-5'
+    # 07:00 (Asia/Ho_Chi_Minh, UTC+7) Mon-Fri = 00:00 UTC Mon-Fri
+    - cron: '0 0 * * 1-5'
   workflow_dispatch: {}
 
 jobs:
