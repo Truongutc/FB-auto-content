@@ -17,9 +17,11 @@ const CATEGORY_LABEL_MAP = {
 };
 
 const CATEGORY_ORDER = ['quocte', 'ttck', 'doanhnghiep', 'chinhsach'];
-// Company/ticker news is the main draw (per user feedback), macro/policy/world is
-// supporting context — weight the quotas accordingly instead of splitting evenly.
-const QUOTA = { quocte: 2, ttck: 2, chinhsach: 2 };
+// Generous ceilings, not tight editorial picks — high enough that a normal day's
+// news never gets truncated, just bounded so the post doesn't balloon into a
+// 100-item wall of text when a feed has an unusually busy day.
+const QUOTA = { quocte: 7, ttck: 7, chinhsach: 7 };
+const DOANHNGHIEP_QUOTA = 9;
 
 const FALLBACK_FEEDS = {
   quocte: ['https://vneconomy.vn/the-gioi.rss'],
@@ -40,10 +42,10 @@ const COMPANY_FEEDS = [
   'https://vietstock.vn/4222/bat-dong-san/du-an.rss',
   'https://vietstock.vn/757/tai-chinh/ngan-hang.rss',
 ];
-const DOANHNGHIEP_QUOTA = 10;
-// Article pages are fetched one by one to read their ticker + lead sentence, so cap
-// how many candidates we're willing to check before giving up on filling the quota.
-const MAX_COMPANY_CANDIDATES = 28;
+// Not an editorial limit — every candidate within the 24h window gets included.
+// This only guards against a feed returning an unexpectedly huge batch (a parsing
+// hiccup, a feed dumping its whole archive, etc.) blowing up the run's fetch count.
+const MAX_COMPANY_CANDIDATES_SAFETY_CAP = 80;
 
 const NOISE_KEYWORDS = [
   'ẩm thực', 'du lịch', 'món ăn', 'công thức', 'giải trí', 'showbiz', 'phim', 'ca sĩ',
@@ -226,7 +228,7 @@ async function fetchCompanyItems(seenNormalized) {
   const deduped = [...byNorm.values()].sort((a, b) => b.pubTime - a.pubTime);
 
   const picked = [];
-  for (const candidate of deduped.slice(0, MAX_COMPANY_CANDIDATES)) {
+  for (const candidate of deduped.slice(0, MAX_COMPANY_CANDIDATES_SAFETY_CAP)) {
     if (picked.length >= DOANHNGHIEP_QUOTA) break;
     seenNormalized.add(candidate.norm);
     const resolved = await resolveEntry(candidate);
