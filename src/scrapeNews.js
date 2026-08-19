@@ -17,7 +17,9 @@ const CATEGORY_LABEL_MAP = {
 };
 
 const CATEGORY_ORDER = ['quocte', 'ttck', 'doanhnghiep', 'chinhsach'];
-const QUOTA = { quocte: 3, ttck: 3, chinhsach: 3 };
+// Company/ticker news is the main draw (per user feedback), macro/policy/world is
+// supporting context — weight the quotas accordingly instead of splitting evenly.
+const QUOTA = { quocte: 2, ttck: 2, chinhsach: 2 };
 
 const FALLBACK_FEEDS = {
   quocte: ['https://vneconomy.vn/the-gioi.rss'],
@@ -38,15 +40,16 @@ const COMPANY_FEEDS = [
   'https://vietstock.vn/4222/bat-dong-san/du-an.rss',
   'https://vietstock.vn/757/tai-chinh/ngan-hang.rss',
 ];
-const DOANHNGHIEP_QUOTA = 7;
+const DOANHNGHIEP_QUOTA = 10;
 // Article pages are fetched one by one to read their ticker + lead sentence, so cap
 // how many candidates we're willing to check before giving up on filling the quota.
-const MAX_COMPANY_CANDIDATES = 18;
+const MAX_COMPANY_CANDIDATES = 28;
 
 const NOISE_KEYWORDS = [
   'ẩm thực', 'du lịch', 'món ăn', 'công thức', 'giải trí', 'showbiz', 'phim', 'ca sĩ',
   'thể thao', 'bóng đá', 'bắt giữ', 'khởi tố', 'tai nạn', 'thời tiết', 'nắng nóng',
   'chiêm tinh', 'tử vi', 'quà đặc biệt', 'thực đơn',
+  'top cổ phiếu đáng chú ý', 'mã cổ phiếu tăng và giảm mạnh nhất',
 ];
 
 function isNoisy(title) {
@@ -66,6 +69,13 @@ function normalize(title) {
 function asSentence(text) {
   const trimmed = text.trim();
   return /[.!?…]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+// Readers open this post to get told the news, not to be asked a rhetorical
+// question ("Điều gì khiến..?") — those are opinion/analysis clickbait framing,
+// not information, so reject anything whose headline/lead is phrased as a question.
+function isQuestion(text) {
+  return /[?？]\s*["'"'”]?\s*$/.test(text.trim());
 }
 
 // Every Vietstock article page carries a "MÃ CHỨNG KHOÁN LIÊN QUAN" sidebar widget
@@ -91,7 +101,11 @@ async function fetchLeadAndTicker(url) {
     .first();
   if (widgetTitle.length) {
     const tickerLinks = widgetTitle.closest('.rightdetail').next('.social_shares').find('.name-index a');
-    if (tickerLinks.length >= 1 && tickerLinks.length <= 2) {
+    // The sidebar tags every ticker the page happens to mention, including a
+    // one-off example buried in a broader market report — require exactly one
+    // tagged ticker, since that's a real signal the whole story is about that
+    // one company (multiple tags means it's incidental, not the subject).
+    if (tickerLinks.length === 1) {
       ticker = tickerLinks.first().text().trim().normalize('NFC');
     }
   }
@@ -102,11 +116,15 @@ async function fetchLeadAndTicker(url) {
 // Resolve a {title, link} pair into the final display line: fetch the Vietstock
 // article for its lead sentence + tagged ticker when possible, otherwise fall back
 // to the bare (non-Vietstock) RSS title so a fetch failure never drops the item.
+// Returns null (reject, try the next candidate) for question-phrased headlines.
 async function resolveEntry({ title, link }) {
+  if (isQuestion(title)) return null;
+
   if (link && /vietstock\.vn/i.test(link)) {
     try {
       const parsed = await fetchLeadAndTicker(link);
       if (parsed) {
+        if (isQuestion(parsed.sentence)) return null;
         return parsed.ticker ? `${parsed.ticker}: ${asSentence(parsed.sentence)}` : asSentence(parsed.sentence);
       }
     } catch (err) {
@@ -211,7 +229,8 @@ async function fetchCompanyItems(seenNormalized) {
   for (const candidate of deduped.slice(0, MAX_COMPANY_CANDIDATES)) {
     if (picked.length >= DOANHNGHIEP_QUOTA) break;
     seenNormalized.add(candidate.norm);
-    picked.push(await resolveEntry(candidate));
+    const resolved = await resolveEntry(candidate);
+    if (resolved) picked.push(resolved);
   }
 
   return picked;
@@ -230,18 +249,25 @@ async function scrapeNews() {
 
   for (const category of ['quocte', 'ttck', 'chinhsach']) {
     const quota = QUOTA[category];
-    const candidates = [...((digest && digest[category]) || [])];
-    if (candidates.length < quota) {
-      candidates.push(...(await fetchFallbackItems(category, seenNormalized)));
-    }
-
     const picked = [];
-    for (const entry of candidates) {
-      if (picked.length >= quota) break;
-      const norm = normalize(entry.title);
-      if (seenNormalized.has(norm)) continue;
-      seenNormalized.add(norm);
-      picked.push(await resolveEntry(entry));
+
+    const tryEntries = async (entries) => {
+      for (const entry of entries) {
+        if (picked.length >= quota) return;
+        const norm = normalize(entry.title);
+        if (seenNormalized.has(norm)) continue;
+        seenNormalized.add(norm);
+        const resolved = await resolveEntry(entry);
+        if (resolved) picked.push(resolved);
+      }
+    };
+
+    await tryEntries((digest && digest[category]) || []);
+    // Question-phrased items get rejected inside resolveEntry, so the digest alone
+    // may not fill the quota even when it had enough raw candidates — top up from
+    // RSS in that case too, not just when the digest was short to begin with.
+    if (picked.length < quota) {
+      await tryEntries(await fetchFallbackItems(category, seenNormalized));
     }
 
     byCategory[category] = picked;
