@@ -1,8 +1,11 @@
 require('dotenv').config();
+const path = require('path');
 const { scrapeNews } = require('./scrapeNews');
 const { scrapeStocksWatch } = require('./scrapeStocksWatch');
-const { publishTextPost } = require('./facebook');
+const { publishPhotoPost } = require('./facebook');
 const { withFooter } = require('./footer');
+
+const COVER_IMAGE = path.join(__dirname, '..', 'assets', 'news-cover.jpg');
 
 function todayVN() {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -37,6 +40,8 @@ async function main() {
 
   const message = withFooter(postText);
 
+  console.log('Ảnh:', COVER_IMAGE);
+
   const dryRun = process.env.DRY_RUN === '1' || !process.env.FB_PAGE_ID || !process.env.FB_PAGE_ACCESS_TOKEN;
   if (dryRun) {
     console.log('\n[DRY RUN] Chưa đăng lên Facebook (thiếu FB_PAGE_ID / FB_PAGE_ACCESS_TOKEN, hoặc DRY_RUN=1).');
@@ -45,9 +50,10 @@ async function main() {
     return;
   }
 
-  const post = await publishTextPost({
+  const post = await publishPhotoPost({
     pageId: process.env.FB_PAGE_ID,
     accessToken: process.env.FB_PAGE_ACCESS_TOKEN,
+    imagePath: COVER_IMAGE,
     message,
   });
   console.log('Đăng bài thành công:', post);
