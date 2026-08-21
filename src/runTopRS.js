@@ -2,7 +2,6 @@ require('dotenv').config();
 const path = require('path');
 const { scrapeTopRS } = require('./scrapeTopRS');
 const { publishMultiPhotoPost } = require('./facebook');
-const { withFooter } = require('./footer');
 
 function todayVN() {
   return new Date().toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
@@ -16,9 +15,7 @@ async function main() {
   console.log(`Cổ phiếu: ${stockPath}`);
   console.log(`Ngành: ${sectorPath}`);
 
-  const message = withFooter(
-    `🏆 TOP RS14 — Cập nhật ${todayVN()}\n\nẢnh 1: Top 30 cổ phiếu theo RS14 (AvgVol20 > 800k)\nẢnh 2: Top ngành theo RS14 (30 phiên gần nhất)`
-  );
+  const message = `🏆 TOP RS14 — Cập nhật ${todayVN()}\n\nẢnh 1: Top 30 cổ phiếu theo RS14 (AvgVol20 > 800k)\nẢnh 2: Top ngành theo RS14 (30 phiên gần nhất)`;
 
   const dryRun = process.env.DRY_RUN === '1' || !process.env.FB_PAGE_ID || !process.env.FB_PAGE_ACCESS_TOKEN;
   if (dryRun) {

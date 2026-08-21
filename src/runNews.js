@@ -3,7 +3,6 @@ const path = require('path');
 const { scrapeNews } = require('./scrapeNews');
 const { scrapeStocksWatch } = require('./scrapeStocksWatch');
 const { publishPhotoPost } = require('./facebook');
-const { withFooter } = require('./footer');
 
 const COVER_IMAGE = path.join(__dirname, '..', 'assets', 'news-cover.jpg');
 
@@ -38,7 +37,7 @@ async function main() {
     postText += `\n\n📌 Cổ phiếu đáng chú ý hôm nay (tổng hợp từ báo cáo các CTCK, không phải khuyến nghị mua/bán): ${tickers.join(', ')}`;
   }
 
-  const message = withFooter(postText);
+  const message = postText;
 
   console.log('Ảnh:', COVER_IMAGE);
 

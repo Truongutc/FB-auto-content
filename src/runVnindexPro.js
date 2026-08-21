@@ -2,14 +2,13 @@ require('dotenv').config();
 const path = require('path');
 const { scrapeVnindexPro } = require('./scrapeVnindexPro');
 const { publishMultiPhotoPost } = require('./facebook');
-const { withFooter } = require('./footer');
 
 async function main() {
   const outDir = path.join(__dirname, '..', 'output');
   const result = await scrapeVnindexPro(outDir);
 
   const imagePaths = [result.breadth, result.greenpink, result.heikin_ashi, result.heatmap, result.technical];
-  const message = withFooter(result.reportText);
+  const message = result.reportText;
 
   console.log('--- Đã lấy dữ liệu VNINDEX (aic-proweb) ---');
   console.log('Ảnh:', imagePaths);

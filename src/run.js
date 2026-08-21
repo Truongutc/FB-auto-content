@@ -2,7 +2,6 @@ require('dotenv').config();
 const path = require('path');
 const { scrape } = require('./scrape');
 const { publishMultiPhotoPost } = require('./facebook');
-const { withFooter } = require('./footer');
 
 async function main() {
   const key = process.argv[2];
@@ -15,7 +14,7 @@ async function main() {
   const results = await scrape([key], outDir);
   const { reportText, greenpink, heikin, heatmap, technical } = results[key];
   const imagePaths = [greenpink, heikin, heatmap, technical];
-  const message = withFooter(reportText);
+  const message = reportText;
 
   console.log(`--- Đã lấy dữ liệu cho ${key} ---`);
   console.log('Ảnh:', imagePaths);

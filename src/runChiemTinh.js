@@ -2,12 +2,11 @@ require('dotenv').config();
 const path = require('path');
 const { scrapeChiemTinh } = require('./scrapeChiemTinh');
 const { publishMultiPhotoPost } = require('./facebook');
-const { withFooter } = require('./footer');
 
 async function main() {
   const outDir = path.join(__dirname, '..', 'output');
   const result = await scrapeChiemTinh(outDir);
-  const message = withFooter(result.conclusionText);
+  const message = result.conclusionText;
 
   console.log('--- Đã lấy dữ liệu Chiêm Tinh Tài Chính ---');
   console.log('Ảnh:', [result.pressure, result.planets]);
